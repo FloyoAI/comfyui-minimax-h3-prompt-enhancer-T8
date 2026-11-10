@@ -32,7 +32,7 @@ def main():
     key = getpass.getpass("API key (hidden; not saved): ") if args.max_corrections else ""
     h3, _sd, _runtime = load_package()
     from importlib import import_module
-    pipeline = import_module(h3.__package__ + ".quality_pipeline")
+    pipeline = import_module(".quality_pipeline", package=h3.__package__)
     if key:
         key, chat, _upload, provider = h3._provider_config(h3.SEEDANCE_API_MODE, key, "")
     else:

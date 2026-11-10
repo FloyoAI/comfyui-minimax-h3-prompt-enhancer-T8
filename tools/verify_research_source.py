@@ -5,7 +5,7 @@ import hashlib
 import json
 from pathlib import Path
 from typing import Any, Callable, Mapping, Sequence
-from urllib.parse import quote
+from urllib.parse import quote, urlsplit
 from urllib.request import Request, urlopen
 
 
@@ -73,8 +73,11 @@ def _raw_url(repository: str, commit: str, path: str) -> str:
 
 
 def fetch_bytes(url: str) -> bytes:
+    parts = urlsplit(url)
+    if parts.scheme != "https" or parts.hostname != "raw.githubusercontent.com":
+        raise SourceVerificationError(f"Refusing to fetch an unapproved URL: {url}")
     request = Request(url, headers={"User-Agent": "T8-research-source-verifier", "Cache-Control": "no-cache"})
-    with urlopen(request, timeout=30) as response:
+    with urlopen(request, timeout=30) as response:  # nosemgrep: dynamic-urllib-use-detected - https host allowlist above
         return response.read()
 
 

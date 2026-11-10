@@ -76,7 +76,7 @@ def origin_version() -> Version | None:
 def registry_version(*, allow_unavailable: bool = False) -> Version | None:
     request = urllib.request.Request(REGISTRY_URL, headers={"User-Agent": "t8-release-verifier/1"})
     try:
-        with urllib.request.urlopen(request, timeout=15) as response:
+        with urllib.request.urlopen(request, timeout=15) as response:  # nosemgrep: dynamic-urllib-use-detected - fixed https REGISTRY_URL
             payload = json.load(response)
     except (OSError, urllib.error.URLError, json.JSONDecodeError) as exc:
         if allow_unavailable:

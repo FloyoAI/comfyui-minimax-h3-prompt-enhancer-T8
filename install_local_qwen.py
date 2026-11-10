@@ -12,6 +12,17 @@ import urllib.error
 import urllib.request
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import urlsplit
+
+
+ALLOWED_DOWNLOAD_HOSTS = frozenset({"huggingface.co", "raw.githubusercontent.com"})
+
+
+def _checked_url(url: str) -> str:
+    parts = urlsplit(url)
+    if parts.scheme != "https" or parts.hostname not in ALLOWED_DOWNLOAD_HOSTS:
+        raise RuntimeError(f"Refusing to download from an unapproved URL: {url}")
+    return url
 
 
 NODE_ROOT = Path(__file__).resolve().parent
@@ -205,13 +216,13 @@ def _download_with_resume(item: Download, destination: Path, *, offline: bool) -
     headers = {"User-Agent": USER_AGENT}
     if downloaded:
         headers["Range"] = f"bytes={downloaded}-"
-    request = urllib.request.Request(item.url, headers=headers)
+    request = urllib.request.Request(_checked_url(item.url), headers=headers)
     print(
         f"[INFO] Downloading {item.filename} from {downloaded / 1024**3:.2f} GiB "
         f"of {item.size / 1024**3:.2f} GiB"
     )
     try:
-        response = urllib.request.urlopen(request, timeout=60)
+        response = urllib.request.urlopen(request, timeout=60)  # nosemgrep: dynamic-urllib-use-detected - https host allowlist in _checked_url
     except urllib.error.HTTPError as error:
         if downloaded and error.code == 416:
             partial.unlink(missing_ok=True)
@@ -289,9 +300,9 @@ def _ensure_upstream_installer(*, offline: bool) -> Path:
         path.replace(backup)
     if offline:
         raise RuntimeError("Offline mode requires the pinned runtime bootstrap installer in the cache.")
-    request = urllib.request.Request(UPSTREAM_INSTALLER_URL, headers={"User-Agent": USER_AGENT})
+    request = urllib.request.Request(_checked_url(UPSTREAM_INSTALLER_URL), headers={"User-Agent": USER_AGENT})
     try:
-        with urllib.request.urlopen(request, timeout=30) as response:
+        with urllib.request.urlopen(request, timeout=30) as response:  # nosemgrep: dynamic-urllib-use-detected - https host allowlist in _checked_url
             data = response.read()
     except urllib.error.URLError as error:
         raise RuntimeError(f"Could not download the pinned runtime installer: {error}") from error

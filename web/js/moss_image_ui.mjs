@@ -302,17 +302,30 @@ export function layoutPreview(draftText, documentObject = globalThis.document) {
         const note = documentObject.createElement("p"); note.textContent = "Caption没有坐标布局 / Caption has no layout"; root.append(note); return root;
     }
     const board = documentObject.createElement("div");
-    Object.assign(board.style, { position: "relative", width: "640px", maxWidth: "80vw", aspectRatio: `${draft.width}/${draft.height}`, background: "#20252c", overflow: "hidden" });
+    board.style.position = "relative";
+    board.style.width = "640px";
+    board.style.maxWidth = "80vw";
+    board.style.aspectRatio = `${draft.width}/${draft.height}`;
+    board.style.background = "#20252c";
+    board.style.overflow = "hidden";
     const palette = ["#80c9ff", "#f5b85f", "#baee93", "#e7a3f7"];
     for (const [index, item] of draft.items.entries()) {
         const box = item.bbox;
         if (!Array.isArray(box) || box.length !== 4 || !box.every(Number.isFinite)
             || box[0] < 0 || box[1] < 0 || box[2] > draft.width || box[3] > draft.height || box[0] >= box[2] || box[1] >= box[3]) throw new Error("Invalid preview box");
         const region = documentObject.createElement("div");
-        Object.assign(region.style, { position: "absolute", boxSizing: "border-box", overflow: "hidden", whiteSpace: "pre-wrap",
-            border: `2px solid ${palette[index % palette.length]}`, color: palette[index % palette.length], font: "12px sans-serif",
-            left: `${100 * box[0] / draft.width}%`, top: `${100 * box[1] / draft.height}%`,
-            width: `${100 * (box[2] - box[0]) / draft.width}%`, height: `${100 * (box[3] - box[1]) / draft.height}%` });
+        const colour = palette[index % palette.length];
+        region.style.position = "absolute";
+        region.style.boxSizing = "border-box";
+        region.style.overflow = "hidden";
+        region.style.whiteSpace = "pre-wrap";
+        region.style.border = `2px solid ${colour}`;
+        region.style.color = colour;
+        region.style.font = "12px sans-serif";
+        region.style.left = `${100 * box[0] / draft.width}%`;
+        region.style.top = `${100 * box[1] / draft.height}%`;
+        region.style.width = `${100 * (box[2] - box[0]) / draft.width}%`;
+        region.style.height = `${100 * (box[3] - box[1]) / draft.height}%`;
         const label = ["object", "character", "text"].includes(item.label) ? item.label : "item";
         region.textContent = `${index + 1} ${label}\n${String(item.text || item.caption || "").slice(0, 160)}`;
         board.append(region);

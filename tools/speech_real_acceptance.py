@@ -291,8 +291,13 @@ def load_plugin():
     package = importlib.util.module_from_spec(spec)
     sys.modules[name] = package
     spec.loader.exec_module(package)
-    return {key: importlib.import_module(name + "." + key)
-            for key in ("nodes", "seedance20", "speech_reference", "strata_provider", "h3_quality")}
+    return {
+        "nodes": importlib.import_module(".nodes", package=name),
+        "seedance20": importlib.import_module(".seedance20", package=name),
+        "speech_reference": importlib.import_module(".speech_reference", package=name),
+        "strata_provider": importlib.import_module(".strata_provider", package=name),
+        "h3_quality": importlib.import_module(".h3_quality", package=name),
+    }
 
 
 def pcm48_stereo(path):
